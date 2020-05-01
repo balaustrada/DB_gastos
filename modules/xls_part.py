@@ -4,6 +4,9 @@ import pandas as pd
 import sys
 from functions import (setlocale, test_existence_file)
 
+import logging
+log = logging.getLogger(__name__)
+
 class Error(Exception):
     pass
 
@@ -24,18 +27,22 @@ class AccountDetailsGetter:
         self.modification_date = datetime.datetime.fromtimestamp( os.stat(self.path).st_mtime )
         
     def set_table_style(self,sheet_name=0,header_row=None,columns_range=None):
+        log.info('Setting table style')
         self.sheet_name = sheet_name
         self.header_row = header_row
         self.columns_range = columns_range
         
     def xls_to_pandas(self,na_filter=None):
+        log.info('Extracting xls into pandas dataframe')
         self.df = pd.read_excel(self.path, sheet_name=self.sheet_name, header=self.header_row, usecols = self.columns_range,na_filter=na_filter)
         
     def add_column(self,column,value):
+        log.info('Adding column: {} with value: {}'.format(column,value))
         self.df[column] = value
             
     def set_fk_origen(self,db_handler):
         self.fk_origen = db_handler.get_pk_from_columns(['DESC_ORIGEN'],[self.__name__], 'DESC_ORIGEN')
+        log.info('FK for source: {}'.format(self.fk_origen))
         self.add_column('FK_ORIGEN',self.fk_origen)
         
     def set_fk_documento_importacion(self,db_handler):
@@ -43,16 +50,20 @@ class AccountDetailsGetter:
         table = 'DESC_DOCUMENTO_IMPORTACION'
         values = [self.fk_origen, self.modification_date.strftime(self.fecha_format)]
         self.fk_documento_importacion = db_handler.insert_row_get_id(columns,values,table,get_pk_if_exists=True)
+        log.info('FK for import document: {}'.format(self.fk_documento_importacion))
         self.add_column('FK_DOCUMENTO_IMPORTACION',self.fk_documento_importacion)
         
     def set_fk_insercion(self,db_handler,now):
         self.fk_insercion = db_handler.insert_row_get_id(['FECHA'],[now.strftime(self.fecha_format)],'DESC_INSERCIONES')
+        log.info('FK for insertion time: {}'.format(self.fk_insercion))
         self.add_column('FK_INSERCION',self.fk_insercion)
     
     def put_modification_date_in_pandas(self):
-        self.df["Fecha modificación documento"] = self.modification_date
+        log.info('Putting modification date into dataframe')
+        self.add_column('Fecha modificación documento',self.modification_date)
         
     def change_column_name(self,column,new_column):
+        log.info('Renaming column: {} into: {}'.format(column,new_column))
         self.df = self.df.rename(columns= {column : new_column})
         
     def remove_file(self):
@@ -60,13 +71,16 @@ class AccountDetailsGetter:
         os.remove(self.path)
     
     def from_str_to_datetime(self,column, str_format, locale=None):
+        log.info('Fixing str into datetime')
         with setlocale(locale):
             self.df[column] = pd.to_datetime(self.df[column], format= str_format)
                 
     def delete_rows_if_column(self, column_name, column_value):
+        log.info('Deleting rows where column: {} has value: {}'.format(column_name, column_value))
         self.df = self.df.drop(self.df[self.df[column_name] == column_value].index)  
         
     def remove_rows_already_in(self,db_handler):
+        log.info('Removing the rows that are already in the database')
         # I'll get from the database the rows newer than the oldest item in xls.
         min_time = self.df.min(axis=0)['FECHA']
         query = 'SELECT FECHA,CONCEPTO,MASDATOS,IMPORTE,SALDO FROM LOG_GASTOS WHERE FECHA >= "{}" AND FK_ORIGEN = "{}"'.format(min_time.strftime(self.fecha_format),self.fk_origen)
@@ -78,13 +92,18 @@ class AccountDetailsGetter:
         self.previous_len_df = len(self.df)
         self.df = pd.merge(self.df, db_df, indicator=True, how='outer').query('_merge=="left_only"').drop('_merge', axis=1)
         
-    def check_overlap(self):
+    def check_overlap(self,db_handler):
         # Check overlap
+        log.info('Checking overlap')
         overlap = - len(self.df) + self.previous_len_df
         if overlap < 2:
             print('Overlap small ({}) for source: {}'.format(overlap,self.__name__))
-            raise OverlapTooSmall('Overlap should be low to avoid consistency problems',overlap,self.__name__)
-        
+            if db_handler.is_table_empty('LOG_GASTOS',filter_='WHERE (FK_ORIGEN = {})'.format(self.fk_origen)): 
+                log.info('Table for source is empty, no problem')
+            else:
+                log.info('Table for source is not empty, overlap is a problem')
+                raise OverlapTooSmall('Overlap should be low to avoid consistency problems',overlap,self.__name__)
+        log.info('Overlapping elements: {}'.format(overlap))
     def to_database(self,db_handler):
         db_handler.insert_dataframe(self.df,'LOG_GASTOS')
         
