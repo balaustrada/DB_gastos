@@ -3,7 +3,7 @@
 
 # %%
 import sys,os
-sys.path.insert(0,'LIB')
+sys.path.insert(0,'modules')
 from db_part import DBHandler, get_db_credentials
 from xls_import import get_data_BBVA_principal, get_data_LaCaixa, get_data_BBVA_prepago
 from xls_part import OverlapTooSmall, ImportFileNotFound
