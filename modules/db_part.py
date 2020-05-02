@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 import configparser
 import logging
 log = logging.getLogger(__name__)
-
+log.setLevel(logging.INFO)
 
 def get_db_credentials(path):
     config = configparser.ConfigParser()

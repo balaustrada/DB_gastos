@@ -25,7 +25,35 @@ class AccountDetailsGetter:
         if not test_existence_file(self.path):
             raise ImportFileNotFound('Import file for source {} not found'.format(self.__name__),self.path)
         self.modification_date = datetime.datetime.fromtimestamp( os.stat(self.path).st_mtime )
-        
+        self.get_file_name()
+
+    def get_file_name(self):
+        temp = self.path[self.path.rfind('/')+1:]
+        self.filename = temp[:temp.find('.')]
+
+    def check_duplicates(self,output):
+        log.info('Checking duplicates')
+        self.add_column('DUPLICADO',0)
+        duplicated_rows = self.df[self.df.duplicated()]
+        output = output +'.csv'
+        if not duplicated_rows.empty:
+            log.warning('Found duplicated entries!, printing them into file: {}'.format(output))
+            duplicated_rows = duplicated_rows.groupby(duplicated_rows.columns.tolist()).size().reset_index().rename(columns={0:'records'})
+            duplicated_rows.to_csv(output,index=False)
+
+            log.info('Inserting duplicated rows with new DUPLICADO value')
+            self.df.drop_duplicates(inplace=True)
+            for index,row in duplicated_rows.iterrows():
+                records = row['records']
+                row.drop('records',inplace=True)
+                for i in range(records):
+                    row['DUPLICADO'] = i+1
+                    self.df = self.df.append(row,ignore_index=True)
+            
+            duplicated_rows = self.df[self.df.duplicated()]
+            if not duplicated_rows.empty:
+                raise ValueError('Duplicated rows exist after checking them')
+
     def set_table_style(self,sheet_name=0,header_row=None,columns_range=None):
         log.info('Setting table style')
         self.sheet_name = sheet_name
