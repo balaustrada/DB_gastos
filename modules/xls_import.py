@@ -27,7 +27,7 @@ def get_data_BBVA_principal(file_path,db_handler,check_overlap=True):
 
 
         BBVA_general.remove_rows_already_in(db_handler)
-        if check_overlap: BBVA_general.check_overlap()
+        if check_overlap: BBVA_general.check_overlap(db_handler)
         BBVA_general.set_fk_documento_importacion(db_handler)
         BBVA_general.set_fk_insercion(db_handler,now)
         return BBVA_general
@@ -54,7 +54,7 @@ def get_data_LaCaixa(file_path,db_handler,check_overlap=True):
 
 
         lacaixa.remove_rows_already_in(db_handler)
-        if check_overlap: lacaixa.check_overlap()
+        if check_overlap: lacaixa.check_overlap(db_handler)
         lacaixa.set_fk_documento_importacion(db_handler)
         lacaixa.set_fk_insercion(db_handler,now)
         return lacaixa
@@ -82,7 +82,7 @@ def get_data_BBVA_prepago(file_path,db_handler,check_overlap=True):
         BBVA_prepago.delete_rows_if_column('CONCEPTO','Bbva-net   descarga prepago  c')
 
         BBVA_prepago.remove_rows_already_in(db_handler)
-        if check_overlap: BBVA_prepago.check_overlap()
+        if check_overlap: BBVA_prepago.check_overlap(db_handler)
         BBVA_prepago.set_fk_documento_importacion(db_handler)
         BBVA_prepago.set_fk_insercion(db_handler,now)
         return BBVA_prepago

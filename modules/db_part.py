@@ -5,6 +5,8 @@ from contextlib import contextmanager
 import pandas as pd
 from sqlalchemy import create_engine
 import configparser
+import logging
+log = logging.getLogger(__name__)
 
 
 def get_db_credentials(path):
@@ -73,7 +75,17 @@ class DBHandler:
             conn.close()
             sys.exit('Error')
         return result
-    
+
+    def is_table_empty(self,table,filter_):
+        log.info('Checking if table {} is empty'.format(table))
+        results = self.run_query('SELECT * FROM {} {} LIMIT 1'.format(table,filter_))
+        if not results:
+            log.info('Table is empty')
+            return True
+        else:
+            log.info('Table is not empty')
+            return False
+
     def run_query(self,query,dictionary=False,show=False): 
         if dictionary: 
             use_cursor = pymysql.cursors.DictCursor
