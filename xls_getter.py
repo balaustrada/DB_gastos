@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-c","--config", required=False, type=str, help="Config file location", default=file_path + "/config_example.ini")
 parser.add_argument("-d","--dbcred", required=False, type=str, help="Database credentials file location", default="/home/pi/DB/.DB_CREDENTIALS.ini")
 parser.add_argument("-p","--pro", action='store_true', help="Use pro database")
+parser.add_argument("-m","--mail", required=False, type=str, help="Mail config file", default='/home/pi/DB/.EMAIL.ini')
 
 args = parser.parse_args()
 
@@ -29,7 +30,7 @@ else:
 # %%
 hostname, username, password, port, host = get_db_credentials(args.dbcred)
 db_handler = DBHandler(hostname = hostname, username = username, password = password,
-    main_database = 'gastos_pre',port = port, host = host)     
+    main_database = database,port = port, host = host)     
 
 bbva_principal_path, bbva_prepago_path, lacaixa_path = get_xls_paths(args.config)
 
