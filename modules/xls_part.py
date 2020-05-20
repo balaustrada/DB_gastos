@@ -3,9 +3,20 @@ import datetime
 import pandas as pd
 import sys
 from functions import (setlocale, test_existence_file)
+import configparser
 
 import logging
 log = logging.getLogger(__name__)
+
+def get_xls_paths(path):
+
+    config                  = configparser.ConfigParser()
+    config.read(path)
+    bbva_principal_path     = config['EXPORT_FILES']['bbva_principal']
+    bbva_prepago_path       = config['EXPORT_FILES']['bbva_prepago']
+    lacaixa_path            = config['EXPORT_FILES']['lacaixa']
+
+    return bbva_principal_path, bbva_prepago_path, lacaixa_path
 
 class Error(Exception):
     pass
@@ -147,3 +158,4 @@ class UnifiedDetails:
             else:
                 self.df = pd.concat([self.df,dataframe],sort=True)
                
+        
