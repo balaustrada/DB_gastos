@@ -2,7 +2,7 @@ import os
 import datetime
 import pandas as pd
 import sys
-from functions import (setlocale, test_existence_file)
+from modules.functions import (setlocale, check_existence_file)
 import configparser
 
 import logging
@@ -33,7 +33,7 @@ class AccountDetailsGetter:
         self.__name__ = name
         self.path = filepath
         print('\n\nStarting {} simulation\nUsing file: {}'.format(self.__name__,self.path))
-        if not test_existence_file(self.path):
+        if not check_existence_file(self.path):
             raise ImportFileNotFound('Import file for source {} not found'.format(self.__name__),self.path)
         self.modification_date = datetime.datetime.fromtimestamp( os.stat(self.path).st_mtime )
         self.get_file_name()

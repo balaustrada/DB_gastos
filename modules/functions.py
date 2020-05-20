@@ -21,21 +21,21 @@ def get_oldest_file(search_path):
     else:
         return None
 
-def test_iterable(to_test):
+def check_iterable(to_test):
     if isinstance(to_test,list) or isinstance(to_test,tuple) or isinstance(to_test,set):
         return True
     else: 
         return False
     
-def test_consistency(columns,values):
+def check_consistency(columns,values):
     if len(columns) != len(values):
         raise ValueError('Columns and values have different shapes',columns,values)
-    elif not test_iterable(columns) or not test_iterable(values):
+    elif not check_iterable(columns) or not check_iterable(values):
         raise ValueError('Columns or values is not iterable',columns,values)
     else:
         return True
     
-def test_existence_file(file):
+def check_existence_file(file):
     if os.path.isfile(file):
         return True
     else:

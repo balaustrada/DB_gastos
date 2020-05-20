@@ -1,6 +1,6 @@
 import pymysql
 import sys
-from functions import test_consistency
+from modules.functions import check_consistency
 from contextlib import contextmanager
 import pandas as pd
 from sqlalchemy import create_engine
@@ -132,7 +132,7 @@ class DBHandler:
         return rowid
     
     def get_pk_from_columns(self,columns, values, table):
-        test_consistency(columns,values)
+        check_consistency(columns,values)
         
         where_clause = 'WHERE ' + ' AND '.join( ['{}="{}"'.format(columns[i],values[i]) for i in range(len(columns))] )
         query = 'SELECT PK_ID FROM {} '.format(table) + where_clause 
@@ -147,7 +147,7 @@ class DBHandler:
         return result[0]['PK_ID']
 
     def insert_row_get_id(self,columns,values,table,get_pk_if_exists=True):
-        test_consistency(columns,values)
+        check_consistency(columns,values)
         if get_pk_if_exists:
             try:
                 pk = self.get_pk_from_columns(columns,values,table)
@@ -159,7 +159,7 @@ class DBHandler:
         return pk
                 
     def insert_row_get_id_old(self,columns,values,table,get_pk_if_exists=False):
-            test_consistency(columns,values)
+            check_consistency(columns,values)
             try:
                 pk = self.insert_values(columns,table,values)
             except pymysql.err.IntegrityError:

@@ -2,8 +2,8 @@
 # coding. utf-8
 
 import sys,os
-from xls_part import AccountDetailsGetter, UnifiedDetails, OverlapTooSmall, ImportFileNotFound
-from db_part import DBHandler 
+from modules.xls_part import AccountDetailsGetter, UnifiedDetails, OverlapTooSmall, ImportFileNotFound
+from modules.db_part import DBHandler 
 import datetime
 import glob
 import pandas as pd
