@@ -15,9 +15,8 @@ class TestModule(unittest.TestCase):
         # Clean temporal files
         shutil.rmtree('tmp_path')
 
-    def check_existence_file(self):
+    def test_check_existence_file(self):
         self.assertTrue(f.check_existence_file('tmp_path/file_1'))
-        os.remove('temp')
         self.assertFalse(f.check_existence_file('tmp_path/file_30'))
 
     def test_check_consistency(self):
@@ -27,6 +26,7 @@ class TestModule(unittest.TestCase):
 
         self.assertRaises(ValueError, f.check_consistency,col1,col3) 
         self.assertTrue(f.check_consistency(col1,col2))
+        self.assertRaises(ValueError, f.check_consistency, 3 ,col2)
 
     def test_check_iterable(self):
         for iterable in ([0,1],(0,1),set([0,1])):
@@ -44,6 +44,8 @@ class TestModule(unittest.TestCase):
             string = date.strftime("%d%m%Y")
         
         self.assertEqual( string, '20052009' )
+
+
     
 if __name__ == '__main__':
     unittest.main()
